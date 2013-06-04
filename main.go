@@ -34,6 +34,19 @@ func main() {
     }()
     defer close(chat)
 
+
+    userInputChan := make(chan string)
+    go func() {
+        for msg := range(userInputChan) {
+            if len(msg) >0 && msg[0] == '/' {
+                chat <- fmt.Sprintf("Command: %s", msg[1:])
+            } else {
+                chat <- msg
+            }
+        }
+    }()
+    defer close(userInputChan)
+
     gc.Echo(false)
     gc.CBreak(true)
     gc.Raw(true)
@@ -51,7 +64,7 @@ func main() {
             case gc.Key(27):
                 return
             case gc.KEY_RETURN:
-                chat <- buffer
+                userInputChan <- buffer
                 buffer = ""
                 chatArea.Refresh()
             case gc.Key(127)://backspace

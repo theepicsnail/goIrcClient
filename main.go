@@ -20,6 +20,9 @@ func main() {
     chatArea := scr.Derived(rows-1, cols, 0, 0)
     chatArea.SetBackground(gc.Character(' ' | gc.ColorPair(ChatAreaColor)))
 
+    inputArea := scr.Derived(1, cols, rows-1, 0)
+    chatArea.SetBackground(gc.Character(' ' | gc.ColorPair(InputAreaColor)))
+
     chat := make(chan string)
     go func() {
         for msg := range(chat) {
@@ -33,37 +36,14 @@ func main() {
 
     gc.Echo(false)
     gc.CBreak(true)
-    //gc.Raw(true)
+    gc.Raw(true)
     chatArea.ScrollOk(true)
     scr.Keypad(true)
 
-    field, _ := gc.NewField(1, cols, rows-1, 0, 0, 0)
-    defer field.Free()
-
-    form, _ := gc.NewForm([]*gc.Field{ field })
-    defer form.Free()
-    
-    form.Post()
-    defer form.UnPost()
-
-    for {
-        ch := scr.GetChar()        
-        switch ch {
-        case gc.Key(27):
-            return
-        case gc.KEY_DOWN:
-            form.Driver(gc.REQ_NEXT_FIELD)
-            form.Driver(gc.REQ_END_LINE)
-        case gc.KEY_UP:
-            form.Driver(gc.REQ_PREV_FIELD)
-            form.Driver(gc.REQ_END_LINE)
-        default:
-            form.Driver(ch)
-        }
-    }
-
-
-/*    buffer := ""
+    chat <- "Welcome to snails shitty chat thing."
+    chat <- "Press esc to quit, it may or may not break stuff. "
+    chat <- "If it does, do a 'reset' to fix it."
+    buffer := ""
     for {
         chatArea.Refresh()
         key := inputArea.GetChar()
@@ -84,6 +64,6 @@ func main() {
         }
         inputArea.Clear()
         inputArea.MovePrint(0, 0, buffer)
-    }*/
+    }
     
 }

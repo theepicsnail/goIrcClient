@@ -1,2 +1,2 @@
 #!/bin/bash
-go run *.go
+go run *.go 2>err.log

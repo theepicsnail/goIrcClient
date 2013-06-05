@@ -2,7 +2,6 @@ package main
 import (
     gc "code.google.com/p/goncurses"
     "fmt"
-    "time"
 )
 const (
     ChatAreaColor = iota
@@ -10,7 +9,7 @@ const (
 )
 
 type Display struct {
-    chatArea gc.Window
+    chatArea *ChatArea
     inputArea *InputField
     mainScreen gc.Window
     ChatChan chan<- string //Input only channel to add strings to the display
@@ -29,8 +28,7 @@ func NewDisplay() *Display {
     gc.Raw(true)
 
     rows, cols := disp.mainScreen.Maxyx()
-    disp.chatArea = disp.mainScreen.Derived(rows-1, cols, 0, 0)
-    disp.chatArea.ScrollOk(true)
+    disp.chatArea = NewChatArea(disp.mainScreen.Derived(rows-1, cols, 0, 0))
  
     disp.inputArea = NewInputField(disp.mainScreen.Derived(1, cols, rows-1, 0))
     
@@ -38,18 +36,10 @@ func NewDisplay() *Display {
     disp.ChatChan = ch
     go func() {
         for line := range(ch) {
-            disp.appendLine(line)
+            disp.chatArea.appendLine(line)
         }
     }()
     return disp
-}
-func (d *Display) appendLine(line string) {
-    line = fmt.Sprintf("%v| %v", time.Now().Format("15:04:05"), line)
-    rows,_ := d.chatArea.Maxyx()
-    d.chatArea.Scroll(1)
-    d.chatArea.MovePrint(rows - 1, 0, line)
-    d.chatArea.Refresh()
-
 }
 func (d *Display) exit() {
     gc.End()

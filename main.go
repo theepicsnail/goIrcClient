@@ -11,7 +11,7 @@ const (
 
 type Display struct {
     chatArea gc.Window
-    inputArea gc.Window
+    inputArea *InputField
     mainScreen gc.Window
     ChatChan chan<- string //Input only channel to add strings to the display
 }
@@ -32,8 +32,7 @@ func NewDisplay() *Display {
     disp.chatArea = disp.mainScreen.Derived(rows-1, cols, 0, 0)
     disp.chatArea.ScrollOk(true)
  
-    disp.inputArea = disp.mainScreen.Derived(1, cols, rows-1, 0)
-    disp.inputArea.Keypad(true)
+    disp.inputArea = NewInputField(disp.mainScreen.Derived(1, cols, rows-1, 0))
     
     ch := make(chan string)
     disp.ChatChan = ch
@@ -60,43 +59,23 @@ func (d *Display) MainLoop() {
     defer d.exit()
     defer close(d.ChatChan)
 
-    userInputChan := make(chan string)
-    go func() {
-        for msg := range(userInputChan) {
-            if len(msg) >0 && msg[0] == '/' {
-                d.ChatChan <- fmt.Sprintf("Command: %s", msg[1:])
-            } else {
-                d.ChatChan <- msg
-            }
-        }
-    }()
-    defer close(userInputChan)
 
     d.ChatChan <- "Welcome to snails shitty chat thing."
     d.ChatChan <- "Press esc to quit, it may or may not break stuff. "
     d.ChatChan <- "If it does, do a 'reset' to fix it."
- 
-    buffer := ""
-    for {
-        d.chatArea.Refresh()
-        key := d.inputArea.GetChar()
-        switch key {
-            case gc.Key(27):
-                return
-            case gc.KEY_RETURN:
-                userInputChan <- buffer
-                buffer = ""
-            case gc.Key(127)://backspace
-                l := len(buffer)
-                if l > 0 {
-                    buffer = buffer[:l-1]
-                }
-            default:
-                buffer = fmt.Sprintf("%s%c", buffer, key)
+    d.ChatChan <- "Use /quit to exit."
+    d.ChatChan <- "" 
+    userInputChan := d.inputArea.GetLineChan()
+    for msg := range(userInputChan) {
+        if msg == "/quit" {
+            return
         }
-        d.inputArea.Clear()
-        d.inputArea.MovePrint(0, 0, buffer)
-    } 
+        if len(msg) >0 && msg[0] == '/' {
+            d.ChatChan <- fmt.Sprintf("Command: %s", msg[1:])
+        } else {
+            d.ChatChan <- msg
+        }
+    }
 }
 
 

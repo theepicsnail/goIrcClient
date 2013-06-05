@@ -12,7 +12,6 @@ type Display struct {
     chatArea *ChatArea
     inputArea *InputField
     mainScreen gc.Window
-    ChatChan chan<- string //Input only channel to add strings to the display
 }
 
 func NewDisplay() *Display {
@@ -32,13 +31,6 @@ func NewDisplay() *Display {
  
     disp.inputArea = NewInputField(disp.mainScreen.Derived(1, cols, rows-1, 0))
     
-    ch := make(chan string)
-    disp.ChatChan = ch
-    go func() {
-        for line := range(ch) {
-            disp.chatArea.appendLine(line)
-        }
-    }()
     return disp
 }
 func (d *Display) exit() {
@@ -47,23 +39,24 @@ func (d *Display) exit() {
 
 func (d *Display) MainLoop() {
     defer d.exit()
-    defer close(d.ChatChan)
 
+    chatChan := d.chatArea.GetChatChan()
 
-    d.ChatChan <- "Welcome to snails shitty chat thing."
-    d.ChatChan <- "Press esc to quit, it may or may not break stuff. "
-    d.ChatChan <- "If it does, do a 'reset' to fix it."
-    d.ChatChan <- "Use /quit to exit."
-    d.ChatChan <- "" 
+    chatChan <- "Welcome to snails shitty chat thing."
+    chatChan <- "Press esc to quit, it may or may not break stuff. "
+    chatChan <- "If it does, do a 'reset' to fix it."
+    chatChan <- "Use /quit to exit."
+    chatChan <- "" 
+
     userInputChan := d.inputArea.GetLineChan()
     for msg := range(userInputChan) {
         if msg == "/quit" {
             return
         }
         if len(msg) >0 && msg[0] == '/' {
-            d.ChatChan <- fmt.Sprintf("Command: %s", msg[1:])
+            chatChan <- fmt.Sprintf("Command: %s", msg[1:])
         } else {
-            d.ChatChan <- msg
+            chatChan <- msg
         }
     }
 }

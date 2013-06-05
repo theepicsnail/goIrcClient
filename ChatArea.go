@@ -6,11 +6,17 @@ import (
 )
 type ChatArea struct {
     display gc.Window
-    
+    chatChan chan string    
 }
 func NewChatArea(win gc.Window) *ChatArea {
     chat := new(ChatArea)
     chat.display = win
+    chat.chatChan = make(chan string)
+    go func() {
+        for line:=range(chat.chatChan) {
+            chat.appendLine(line)
+        }
+    }()
     win.ScrollOk(true)  
     return chat
 }
@@ -21,4 +27,8 @@ func (c *ChatArea) appendLine(line string) {
     c.display.Scroll(1)
     c.display.MovePrint(rows - 1, 0, line)
     c.display.Refresh()
+}
+
+func (c *ChatArea) GetChatChan() chan<- string {
+    return c.chatChan
 }

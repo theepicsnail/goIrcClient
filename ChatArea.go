@@ -6,7 +6,8 @@ import (
 )
 type ChatArea struct {
     display gc.Window
-    chatChan chan string    
+    chatChan chan string   
+    chatHistory []string  
 }
 func NewChatArea(win gc.Window) *ChatArea {
     chat := new(ChatArea)
@@ -17,15 +18,21 @@ func NewChatArea(win gc.Window) *ChatArea {
             chat.appendLine(line)
         }
     }()
-    win.ScrollOk(true)  
+    rows,_ := chat.display.Maxyx()
+    chat.chatHistory = make([]string,rows)
     return chat
 }
 
 func (c *ChatArea) appendLine(line string) {
     line = fmt.Sprintf("%v| %v", time.Now().Format("15:04:05"), line)
     rows,_ := c.display.Maxyx()
-    c.display.Scroll(1)
-    c.display.MovePrint(rows - 1, 0, line)
+    
+    c.display.Erase()
+    for rnum, nextLine := range(c.chatHistory) {
+        c.display.MovePrint(rows - 1 - rnum, 0, line)
+        c.chatHistory[rnum]= line
+        line = nextLine
+    }
     c.display.Refresh()
 }
 

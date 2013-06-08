@@ -59,14 +59,18 @@ func parseMessage(line string) *IrcMessage {
     fmt.Println(line)
     return msg
 }
-func NewIrcClient(hostport string) *IrcClient {
+func NewIrcClient(hostport, password string) *IrcClient {
     con, err := net.Dial("tcp", hostport)
     if err != nil {
         panic(err)
     }
     client := new(IrcClient)
     client.conn = con
-     
+    
+    if password != "" {
+        fmt.Fprint(client.conn, "PASS %s\r\n", password) 
+    }
+
     client.input = make(chan string, 100)
     go func() {
         for line := range(client.input) {
@@ -93,7 +97,7 @@ func NewIrcClient(hostport string) *IrcClient {
 }
 
 func main() {
-    c := NewIrcClient("localhost:6667")
+    c := NewIrcClient("localhost:6667", "")
     c.input <- "USER localhost localhost localhost :realname"
     c.input <- "NICK testBot"
     for msg := range(c.output) {

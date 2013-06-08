@@ -97,9 +97,10 @@ func NewIrcClient(hostport, password string) *IrcClient {
 }
 
 func main() {
+    name := "testBot"
     c := NewIrcClient("localhost:6667", "")
-    c.input <- "USER localhost localhost localhost :realname"
-    c.input <- "NICK testBot"
+    c.input <- "USER " + name + " 0 * :" + name
+    c.input <- "NICK " + name
     for msg := range(c.output) {
         fmt.Println("────┼───────")
         fmt.Println("raw │ ", msg.raw)

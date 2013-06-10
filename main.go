@@ -12,6 +12,7 @@ type Display struct {
     chatArea *ChatArea
     inputArea *InputField
     mainScreen gc.Window
+    windowList *WindowList
 }
 
 func NewDisplay() *Display {
@@ -26,8 +27,12 @@ func NewDisplay() *Display {
     gc.CBreak(true)
     gc.Raw(true)
 
+    windowListWidth := 10
+
     rows, cols := disp.mainScreen.Maxyx()
-    disp.chatArea = NewChatArea(disp.mainScreen.Derived(rows-1, cols, 0, 0))
+    disp.windowList = NewWindowList(disp.mainScreen.Derived(rows-1, windowListWidth, 0, 0))
+
+    disp.chatArea = NewChatArea(disp.mainScreen.Derived(rows-1, cols - windowListWidth, 0, windowListWidth))
  
     disp.inputArea = NewInputField(disp.mainScreen.Derived(1, cols, rows-1, 0))
     

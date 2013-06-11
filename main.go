@@ -2,6 +2,7 @@ package main
 import (
     gc "code.google.com/p/goncurses"
     "fmt"
+    "strings"
 )
 const (
     ChatAreaColor = iota
@@ -55,11 +56,13 @@ func (d *Display) MainLoop() {
 
     userInputChan := d.inputArea.GetLineChan()
     for msg := range(userInputChan) {
-        if msg == "/quit" {
-            return
-        }
         if len(msg) >0 && msg[0] == '/' {
-            chatChan <- fmt.Sprintf("Command: %s", msg[1:])
+            parts := strings.Split(msg[1:], " ")
+            
+            chatChan <- fmt.Sprintf("Command [%s] %s", parts[0], parts[1:])
+            if parts[0] == "quit" {
+                return
+            }
         } else {
             chatChan <- msg
         }

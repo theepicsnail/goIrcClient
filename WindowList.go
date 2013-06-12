@@ -3,13 +3,8 @@ import (
     gc "code.google.com/p/goncurses"
 )
 
-type Window struct {
-    name string
-    history []string
-}
-
 type WindowList struct {
-    windows []Window
+    windows []*Window
     display gc.Window
     selected int
 }
@@ -20,7 +15,7 @@ func NewWindowList(window gc.Window) *WindowList {
     return w
 }
 
-func (w *WindowList) SelectWindowById(num int) Window {
+func (w *WindowList) SelectWindowById(num int) *Window {
     //Unselect the old window
     w.display.Move(w.selected,0)
     w.display.ClearToEOL()
@@ -34,30 +29,25 @@ func (w *WindowList) SelectWindowById(num int) Window {
     return selWin
 }
 
-func (wlist *WindowList) SelectWindowByName(name string) Window {
-    //Finds a window by name, if it's not found, create it.
-    id := wlist.findWindowByName(name)
-
-    if id == -1 {
-        id = wlist.createWindow(name)
-    }
-
-    return wlist.SelectWindowById(id)
+func (wlist *WindowList) SelectWindowByName(name string) *Window {
+    id := wlist.findOrCreateWindow(name)
+    wlist.SelectWindowById(id)
+    return wlist.windows[id] 
 }
 
-func (wList *WindowList) findWindowByName(name string) int {
-    for n, win := range(wList.windows) {
+func (wlist *WindowList) GetWindowByName(name string) *Window {
+    id := wlist.findOrCreateWindow(name)
+    return wlist.windows[id]
+}
+
+func (wlist *WindowList) findOrCreateWindow(name string) int {
+    for n, win := range(wlist.windows) {
         if win.name == name {
             return n
         }
     }
-    return -1
-}
 
-func (wlist *WindowList) createWindow(name string) int {
-    win := new(Window)
-    win.name = name
-    win.history = make([]string, 16)
-    wlist.windows = append(wlist.windows, *win)
+    nWin := NewWindow(name)
+    wlist.windows = append(wlist.windows, nWin)
     return len(wlist.windows) - 1
 }

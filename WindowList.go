@@ -5,7 +5,8 @@ import (
 //Window List is the left pane in the irc client display
 type WindowList struct {
     display gc.Window
-    lastSelected int
+    selected int
+    windows []string
 }
 
 func NewWindowList(window gc.Window) *WindowList {
@@ -14,18 +15,19 @@ func NewWindowList(window gc.Window) *WindowList {
     return w
 }
 
-func (wlist *WindowList) Update() {
-    wlist.display.Erase()
-/*
-    selectedIdx := wlist.manager.selected
+func (wlist *WindowList) CreateWindow(name string) {
+    wlist.windows = append(wlist.windows, name)
+    wlist.selectWindow(len(wlist.windows)-1)
+}
 
-    for n, window := range(wlist.manager.windows) {
-        fmtStr := " %s "
-        if n == selectedIdx {
-            fmtStr = "[%s]"
-        }
-        wlist.display.MovePrint(n, 0, fmtStr, window.name) 
-    }
-*/
+func (wlist *WindowList) updateLine(id int, fmt string) {
+    wlist.display.MovePrint(id, 0, fmt, wlist.windows[id])
+    wlist.display.ClearToEOL()
+}
+
+func (wlist *WindowList) selectWindow(idx int) {
+    wlist.updateLine(wlist.selected, " %s ")
+    wlist.selected = idx
+    wlist.updateLine(wlist.selected, "[%s]") 
     wlist.display.Refresh()
 }

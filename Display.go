@@ -44,9 +44,14 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     return disp
 }
 
-func (d *Display) windowEventConsumer( eventChan <-chan *WindowEvent) {
+func (disp *Display) windowEventConsumer( eventChan <-chan *WindowEvent) {
     for event := range(eventChan) {
-        d.chatArea.renderWindow(event.window)
+
+        if event.eventType == WIN_EVT_CREATE {
+            disp.windowList.CreateWindow(event.window.name)
+        }
+        
+        disp.chatArea.renderWindow(event.window)
     }
 }
 

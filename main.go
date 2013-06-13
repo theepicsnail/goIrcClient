@@ -1,6 +1,7 @@
 package main
 import (
     "fmt"
+    "time"
     "strings"
 )
 func main() {
@@ -28,7 +29,10 @@ func main() {
                 return
             }
         } else {
-            chatChan <- msg
+            go func() {
+                time.Sleep(1e8)
+                chatChan <- msg
+            }()
         }
     }
 

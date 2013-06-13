@@ -3,6 +3,7 @@ import (
     "fmt"
     "time"
     "strings"
+    "strconv"
 )
 func main() {
     eventChan := make(chan *WindowEvent,100)
@@ -28,8 +29,18 @@ func main() {
     for msg := range(userInputChan) {
         if len(msg) >0 && msg[0] == '/' {
             parts := strings.Split(msg[1:], " ")
-            
-            chatChan <- fmt.Sprintf("Command [%s] %s", parts[0], parts[1:])
+            if len(parts) == 1 {
+                if idx, err := strconv.Atoi(parts[0]); err == nil {
+                    win := wm.SelectWindowById(idx)
+                    if win != nil {
+                        chatChan = win.GetLineChan()
+                    }
+                }
+            }
+            go func() {
+                time.Sleep(1e8)
+                chatChan <- fmt.Sprintf("Command [%s] %s", parts[0], parts[1:])
+            }()
             if parts[0] == "quit" {
                 return
             }

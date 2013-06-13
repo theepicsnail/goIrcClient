@@ -20,7 +20,7 @@ func NewWindowList(window gc.Window) *WindowList {
 
 func (wlist *WindowList) CreateWindow(name string) {
     wlist.windows = append(wlist.windows, name)
-    wlist.selectWindow(len(wlist.windows)-1)
+    wlist.SelectWindowById(len(wlist.windows)-1)
 }
 
 func (wlist *WindowList) updateLine(id int, fmt string) {
@@ -28,7 +28,7 @@ func (wlist *WindowList) updateLine(id int, fmt string) {
     wlist.display.ClearToEOL()
 }
 
-func (wlist *WindowList) selectWindow(idx int) {
+func (wlist *WindowList) SelectWindowById(idx int) {
     wlist.updateLine(wlist.selected, " %s ")
     wlist.selected = idx
     wlist.updateLine(wlist.selected, "[%s]") 
@@ -45,16 +45,24 @@ func (wlist *WindowList) windowEventConsumer() {
         case WIN_EVT_CREATE:
             wlist.CreateWindow(event.window.name)
         case WIN_EVT_UPDATE:
-            if event.window.name != wlist.windows[wlist.selected] {
-                for id, name := range(wlist.windows) {
-                    if name == event.window.name {
-                        wlist.updateLine(id, "*%s*")
-                    }
-                }
+            if event.window.name != wlist.SelectedWindowName() {
+                id := wlist.findIdByName(event.window.name)
+                wlist.updateLine(id, "*%s*")
             }
-            wlist.display.Refresh()
+        case WIN_EVT_FOCUS:
+            wlist.SelectWindowById(wlist.findIdByName(event.window.name))
+        }
+        wlist.display.Refresh()
+    }
+}
+
+func (wlist *WindowList) findIdByName(name string) int {
+    for id, wname := range(wlist.windows) {
+        if wname == name {
+            return id
         }
     }
+    return -1
 }
 
 func (wlist *WindowList) SelectedWindowName() string {

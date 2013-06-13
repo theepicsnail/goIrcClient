@@ -13,8 +13,16 @@ func NewWindowManager(evtChan chan<- *WindowEvent) *WindowManager {
 }
 
 func (w *WindowManager) SelectWindowById(num int) *Window {
+    if num < 0 || num >= len(w.windows) {
+        return nil
+    }
+
     w.selected = num
-    return w.windows[w.selected]
+    win := w.windows[w.selected]
+
+    w.eventChannel <- &WindowEvent{win, WIN_EVT_FOCUS}
+
+    return win
 }
 
 func (wlist *WindowManager) SelectWindowByName(name string) *Window {

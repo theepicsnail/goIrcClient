@@ -4,6 +4,7 @@ type WindowEventType int
 const (
     WIN_EVT_CREATE WindowEventType = iota
     WIN_EVT_UPDATE
+    WIN_EVT_FOCUS //Make this window the main window
 )
 
 type WindowEvent struct {

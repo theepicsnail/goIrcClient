@@ -9,7 +9,13 @@ func main() {
     wm := NewWindowManager(eventChan)
     d := NewDisplay(eventChan)
     defer d.exit()
-
+    window1 := wm.GetWindowByName("Test")
+    go func() {
+        for {
+            time.Sleep(5e9)
+            window1.GetLineChan() <- "A"
+        }
+    }()
     window := wm.GetWindowByName("Main")
     chatChan := window.GetLineChan()
 
@@ -18,7 +24,6 @@ func main() {
     chatChan <- "If it does, do a 'reset' to fix it."
     chatChan <- "Use /quit to exit."
     chatChan <- "" 
-
     userInputChan := d.inputArea.GetLineChan()
     for msg := range(userInputChan) {
         if len(msg) >0 && msg[0] == '/' {

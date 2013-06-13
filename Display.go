@@ -25,6 +25,7 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     gc.Echo(false)
     gc.CBreak(true)
     gc.Raw(true)
+    gc.Cursor(0)
 
     windowListWidth := 10
 
@@ -46,12 +47,10 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
 
 func (disp *Display) windowEventConsumer( eventChan <-chan *WindowEvent) {
     for event := range(eventChan) {
-
-        if event.eventType == WIN_EVT_CREATE {
-            disp.windowList.CreateWindow(event.window.name)
+        disp.windowList.GetWindowEventChan() <- event
+        if disp.windowList.SelectedWindowName() == event.window.name {
+            disp.chatArea.renderWindow(event.window)
         }
-        
-        disp.chatArea.renderWindow(event.window)
     }
 }
 

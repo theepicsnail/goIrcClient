@@ -4,10 +4,13 @@ import (
     "strings"
 )
 func main() {
-    d := NewDisplay()
+    eventChan := make(chan *WindowEvent,100)
+    wm := NewWindowManager(eventChan)
+    d := NewDisplay(eventChan)
     defer d.exit()
 
-    chatChan := d.chatArea.GetChatChan()
+    window := wm.GetWindowByName("Main")
+    chatChan := window.GetLineChan()
 
     chatChan <- "Welcome to snails shitty chat thing."
     chatChan <- "Press esc to quit, it may or may not break stuff. "

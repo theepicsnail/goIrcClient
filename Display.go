@@ -14,7 +14,7 @@ type Display struct {
     windowList *WindowList
 }
 
-func NewDisplay() *Display {
+func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     disp := new(Display)
     var err error
     disp.mainScreen, err = gc.Init()
@@ -29,14 +29,27 @@ func NewDisplay() *Display {
     windowListWidth := 10
 
     rows, cols := disp.mainScreen.Maxyx()
-    disp.windowList = NewWindowList(disp.mainScreen.Derived(rows-1, windowListWidth, 0, 0))
+    disp.windowList = NewWindowList(
+        disp.mainScreen.Derived(rows-1, windowListWidth, 0, 0))
 
-    disp.chatArea = NewChatArea(disp.mainScreen.Derived(rows-1, cols - windowListWidth, 0, windowListWidth))
+    disp.chatArea = NewChatArea(
+        disp.mainScreen.Derived(
+        rows-1, cols - windowListWidth, 0, windowListWidth))
  
-    disp.inputArea = NewInputField(disp.mainScreen.Derived(1, cols, rows-1, 0))
+    disp.inputArea = NewInputField(
+        disp.mainScreen.Derived(1, cols, rows-1, 0))
     
+    go disp.windowEventConsumer(eventChan)
+
     return disp
 }
+
+func (d *Display) windowEventConsumer( eventChan <-chan *WindowEvent) {
+    for event := range(eventChan) {
+        d.chatArea.renderWindow(event.window)
+    }
+}
+
 func (d *Display) exit() {
     gc.End()
 }

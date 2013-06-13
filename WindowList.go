@@ -2,11 +2,10 @@ package main
 import (
     gc "code.google.com/p/goncurses"
 )
-
+//Window List is the left pane in the irc client display
 type WindowList struct {
-    windows []*Window
     display gc.Window
-    selected int
+    lastSelected int
 }
 
 func NewWindowList(window gc.Window) *WindowList {
@@ -15,39 +14,18 @@ func NewWindowList(window gc.Window) *WindowList {
     return w
 }
 
-func (w *WindowList) SelectWindowById(num int) *Window {
-    //Unselect the old window
-    w.display.Move(w.selected,0)
-    w.display.ClearToEOL()
-    w.display.MovePrint(w.selected,0," %s ",w.windows[w.selected].name)
+func (wlist *WindowList) Update() {
+    wlist.display.Erase()
+/*
+    selectedIdx := wlist.manager.selected
 
-    w.selected = num
-    selWin := w.windows[w.selected]
-
-    w.display.MovePrint(w.selected, 0,"[%s]", selWin.name)
-    w.display.Refresh()
-    return selWin
-}
-
-func (wlist *WindowList) SelectWindowByName(name string) *Window {
-    id := wlist.findOrCreateWindow(name)
-    wlist.SelectWindowById(id)
-    return wlist.windows[id] 
-}
-
-func (wlist *WindowList) GetWindowByName(name string) *Window {
-    id := wlist.findOrCreateWindow(name)
-    return wlist.windows[id]
-}
-
-func (wlist *WindowList) findOrCreateWindow(name string) int {
-    for n, win := range(wlist.windows) {
-        if win.name == name {
-            return n
+    for n, window := range(wlist.manager.windows) {
+        fmtStr := " %s "
+        if n == selectedIdx {
+            fmtStr = "[%s]"
         }
+        wlist.display.MovePrint(n, 0, fmtStr, window.name) 
     }
-
-    nWin := NewWindow(name)
-    wlist.windows = append(wlist.windows, nWin)
-    return len(wlist.windows) - 1
+*/
+    wlist.display.Refresh()
 }

@@ -13,9 +13,13 @@ func NewChatArea(win gc.Window) *ChatArea {
 
 func (c *ChatArea) renderWindow(win *Window) {
     rows,_ := c.display.Maxyx()
-    
+    startIdx := len(win.history) - rows
+    if startIdx < 0 {
+        startIdx = 0
+    }
+
     c.display.Erase()
-    for rnum, line := range(win.history) {
+    for rnum, line := range(win.history[startIdx:]) {
         if rnum == rows {
             break
         }

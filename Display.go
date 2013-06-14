@@ -21,7 +21,6 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     if err != nil {
         panic(err)
     }
-
     gc.Echo(false)
     gc.CBreak(true)
     gc.Raw(true)
@@ -38,10 +37,9 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
         rows-1, cols - windowListWidth, 0, windowListWidth))
  
     disp.inputArea = NewInputField(
-        disp.mainScreen.Derived(1, cols, rows-1, 0))
-    
-    go disp.windowEventConsumer(eventChan)
+        disp.mainScreen.Derived(1, cols, rows-1, 0)) 
 
+    go disp.windowEventConsumer(eventChan)
     return disp
 }
 

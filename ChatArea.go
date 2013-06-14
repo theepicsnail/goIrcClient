@@ -18,6 +18,7 @@ func (c *ChatArea) renderWindow(win *Window) {
         startIdx = 0
     }
 
+    go func(){CURSES.Lock()
     c.display.Erase()
     for rnum, line := range(win.history[startIdx:]) {
         if rnum == rows {
@@ -26,5 +27,6 @@ func (c *ChatArea) renderWindow(win *Window) {
         c.display.MovePrint(rnum, 0, line)
     }
     c.display.Refresh()
+    CURSES.Unlock()}()
 }
 

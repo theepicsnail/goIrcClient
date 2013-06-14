@@ -24,15 +24,17 @@ func (wlist *WindowList) CreateWindow(name string) {
 }
 
 func (wlist *WindowList) updateLine(id int, fmt string) {
+    go func() {CURSES.Lock()
     wlist.display.MovePrint(id, 0, fmt, wlist.windows[id])
     wlist.display.ClearToEOL()
+    wlist.display.Refresh()
+    CURSES.Unlock()}()
 }
 
 func (wlist *WindowList) SelectWindowById(idx int) {
     wlist.updateLine(wlist.selected, " %s ")
     wlist.selected = idx
     wlist.updateLine(wlist.selected, "[%s]") 
-    wlist.display.Refresh()
 }
 
 func (wlist *WindowList) GetWindowEventChan() chan<- *WindowEvent {
@@ -52,7 +54,6 @@ func (wlist *WindowList) windowEventConsumer() {
         case WIN_EVT_FOCUS:
             wlist.SelectWindowById(wlist.findIdByName(event.window.name))
         }
-        wlist.display.Refresh()
     }
 }
 

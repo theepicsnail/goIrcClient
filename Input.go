@@ -38,9 +38,11 @@ func (f *InputField) handleKey(key gc.Key) {
         default:
             f.buffer = fmt.Sprintf("%s%c", f.buffer, key)
     }
+    go func(){CURSES.Lock()
     f.display.Clear()
     f.display.MovePrint(0, 0, f.buffer)
     f.display.Refresh()
+    CURSES.Unlock()}()
 }
 
 func (f *InputField) GetLineChan() <-chan string {

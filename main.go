@@ -20,11 +20,10 @@ func main() {
     window := wm.GetWindowByName("Main")
     chatChan := window.GetLineChan()
 
-    chatChan <- "Welcome to snails shitty chat thing."
-    chatChan <- "Press esc to quit, it may or may not break stuff. "
-    chatChan <- "If it does, do a 'reset' to fix it."
-    chatChan <- "Use /quit to exit."
-    chatChan <- "" 
+    chatChan <- "Snail's go IRC client!"
+    chatChan <- "While I think I have the kinks worked out, you might need to 'reset' after quitting."
+    chatChan <- "Use /quit to quit"
+    chatChan <- "Use /0 /1 /2... to switch to that window" 
     userInputChan := d.inputArea.GetLineChan()
     for msg := range(userInputChan) {
         if len(msg) >0 && msg[0] == '/' {

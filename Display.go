@@ -42,12 +42,16 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     go disp.windowEventConsumer(eventChan)
     return disp
 }
-
 func (disp *Display) windowEventConsumer( eventChan <-chan *WindowEvent) {
     for event := range(eventChan) {
         disp.windowList.GetWindowEventChan() <- event
-        if disp.windowList.SelectedWindowName() == event.window.name {
-            disp.chatArea.renderWindow(event.window)
+        switch event.eventType {
+            case WIN_EVT_FOCUS:
+                disp.chatArea.renderWindow(event.window)
+            case WIN_EVT_UPDATE:
+            if disp.windowList.SelectedWindowName() == event.window.name {
+                disp.chatArea.renderWindow(event.window)
+            }
         }
     }
 }

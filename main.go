@@ -31,24 +31,17 @@ func main() {
             parts := strings.Split(msg[1:], " ")
             if len(parts) == 1 {
                 if idx, err := strconv.Atoi(parts[0]); err == nil {
-                    win := wm.SelectWindowById(idx)
-                    if win != nil {
+                    if win := wm.SelectWindowById(idx); win != nil {
                         chatChan = win.GetLineChan()
                     }
+                } else if parts[0] == "quit" {
+                    return 
                 }
-            }
-            go func() {
-                time.Sleep(1e8)
+            } else {
                 chatChan <- fmt.Sprintf("Command [%s] %s", parts[0], parts[1:])
-            }()
-            if parts[0] == "quit" {
-                return
             }
         } else {
-            go func() {
-                time.Sleep(1e8)
-                chatChan <- msg
-            }()
+            chatChan <- msg
         }
     }
 

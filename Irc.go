@@ -5,13 +5,8 @@ import (
     "strings"
     "net"
     "regexp"
+    "time"
 )
-type IrcClient struct {
-    conn net.Conn
-    input chan string
-    output chan *IrcMessage
-}
-
 //Example private message
 //:snail!snail@airc-BD88CA3C PRIVMSG testbot :Test :)
 // 0 - Full line            (:snail!snail@airc-BD88CA3C PRIVMSG testbot :test)
@@ -59,6 +54,15 @@ func parseMessage(line string) *IrcMessage {
     fmt.Println(line)
     return msg
 }
+
+type IrcClient struct {
+    conn net.Conn
+    //Input and output have different types to help prevent any confusion between the two
+    input chan string //Us sending data into the server
+    output chan *IrcMessage //Things we got from the server (parsed)
+    
+}
+
 func NewIrcClient(hostport, password string) *IrcClient {
     con, err := net.Dial("tcp", hostport)
     if err != nil {
@@ -96,7 +100,11 @@ func NewIrcClient(hostport, password string) *IrcClient {
     return client
 }
 
-func main() {
+func (client *IrcClient) HandleCommand(cmd, line string) {
+    client.input <- fmt.Sprintf("%s :%s", cmd, line)
+}
+
+func mmain() {
     name := "testBot"
     c := NewIrcClient("localhost:6667", "")
     c.input <- "USER " + name + " 0 * :" + name
@@ -110,7 +118,14 @@ func main() {
         fmt.Println("tail│ ", msg.trailing)
         switch msg.command {
             case "376":
-                c.input <- "JOIN #test"
+                go func() {
+                    c.input <- "JOIN #test"
+                    time.Sleep(1e9)
+                    for i := 0 ; i < 30 ; i++ {
+                        c.input <- fmt.Sprintf("PRIVMSG #test :Message to #test %i", i)
+                    }
+                    c.input <- "PRIVMSG snail :Message to snail"
+                }()
         }
     }
 }

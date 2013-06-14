@@ -26,7 +26,7 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     gc.Raw(true)
     gc.Cursor(0)
 
-    windowListWidth := 10
+    windowListWidth := 15
 
     rows, cols := disp.mainScreen.Maxyx()
     disp.windowList = NewWindowList(
@@ -42,6 +42,11 @@ func NewDisplay(eventChan <-chan *WindowEvent) *Display {
     go disp.windowEventConsumer(eventChan)
     return disp
 }
+
+func (disp *Display) Alert() {
+    gc.Beep()
+}
+
 func (disp *Display) windowEventConsumer( eventChan <-chan *WindowEvent) {
     for event := range(eventChan) {
         disp.windowList.GetWindowEventChan() <- event

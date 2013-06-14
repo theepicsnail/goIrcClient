@@ -1,24 +1,24 @@
 package main
 import (
     "fmt"
-    "time"
     "strings"
     "strconv"
 )
 func main() {
+    var client *IrcClient
     eventChan := make(chan *WindowEvent,100)
     wm := NewWindowManager(eventChan)
     d := NewDisplay(eventChan)
     defer d.exit()
-    window1 := wm.GetWindowByName("Test")
-    go func() {
-        for {
-            time.Sleep(5e9)
-            window1.GetLineChan() <- "A"
-        }
-    }()
-    window := wm.GetWindowByName("Main")
+    window := wm.GetWindowByName("Client")
     chatChan := window.GetLineChan()
+
+    messageHandler := func(ircMessages chan *IrcMessage) {
+        for msg := range(ircMessages) {
+            chatChan <- fmt.Sprintf("Msg: %s", msg)
+        }
+    }
+
 
     chatChan <- "Snail's go IRC client!"
     chatChan <- "While I think I have the kinks worked out, you might need to 'reset' after quitting."
@@ -27,19 +27,45 @@ func main() {
     userInputChan := d.inputArea.GetLineChan()
     for msg := range(userInputChan) {
         if len(msg) >0 && msg[0] == '/' {
-            parts := strings.Split(msg[1:], " ")
+            parts := strings.SplitN(msg[1:], " ", 2)
+            parts[0] = strings.ToUpper(parts[0]) // Capitalize the command portion
             if len(parts) == 1 {
                 if idx, err := strconv.Atoi(parts[0]); err == nil {
                     if win := wm.SelectWindowById(idx); win != nil {
                         chatChan = win.GetLineChan()
+                    } else {
+                        d.Alert()
                     }
-                } else if parts[0] == "quit" {
+                } else if parts[0] == "QUIT" {
+                    if client != nil {
+                        client.HandleCommand("QUIT", "Quit message here.")
+                    }
                     return 
                 }
             } else {
-                chatChan <- fmt.Sprintf("Command [%s] %s", parts[0], parts[1:])
+                switch parts[0] {
+                    case "CONNECT":
+                    if client != nil {
+                        client.HandleCommand("QUIT", "Quit message here...")
+                    }
+                    parts = append(parts, "") //default password.
+                    client = NewIrcClient(parts[1], parts[2])
+                    client.HandleCommand("USER testBot 0 *", "testBot")
+                    client.HandleCommand("NICK", "testBot")
+                    go messageHandler(client.output)
+                    case "QUIT":
+                    if client != nil {
+                        client.HandleCommand("QUIT", parts[1])
+                    }
+                    return
+
+                    default:
+                    client.HandleCommand(parts[0], parts[1])
+                } 
             }
         } else {
+            target := d.windowList.SelectedWindowName()
+            client.HandleCommand(fmt.Sprintf("PRIVMSG %s", target), msg)
             chatChan <- msg
         }
     }

@@ -15,17 +15,24 @@ func main() {
 
     messageHandler := func(ircMessages chan *IrcMessage) {
         for msg := range(ircMessages) {
-            chatChan <- fmt.Sprintf("Msg: %s", msg)
+            chatChan <- fmt.Sprintf("Msg: %q", msg)
+            switch msg.command {
+                case "JOIN":
+                    chatChan = wm.GetWindowByName(msg.trailing).GetLineChan()
+            }
+//               Msg: &{"testBot" "JOIN" [] "#test" ":testBot!testBot@airc-BD88CA3C JOIN :#test"}
         }
     }
 
-
+    
     chatChan <- "Snail's go IRC client!"
     chatChan <- "While I think I have the kinks worked out, you might need to 'reset' after quitting."
     chatChan <- "Use /quit to quit"
     chatChan <- "Use /0 /1 /2... to switch to that window" 
     userInputChan := d.inputArea.GetLineChan()
+    go func(){d.inputArea.lineChan <- "/CONNECT localhost:6667"}()
     for msg := range(userInputChan) {
+        target := d.windowList.SelectedWindowName()
         if len(msg) >0 && msg[0] == '/' {
             parts := strings.SplitN(msg[1:], " ", 2)
             parts[0] = strings.ToUpper(parts[0]) // Capitalize the command portion
@@ -53,18 +60,20 @@ func main() {
                     client.HandleCommand("USER testBot 0 *", "testBot")
                     client.HandleCommand("NICK", "testBot")
                     go messageHandler(client.output)
+
                     case "QUIT":
                     if client != nil {
                         client.HandleCommand("QUIT", parts[1])
                     }
                     return
 
+                    case "ME":
+                        client.HandleCommand(fmt.Sprintf("PRIVMSG %s", target ), fmt.Sprintf("\001ACTION %s\001", parts[1]))
                     default:
                     client.HandleCommand(parts[0], parts[1])
                 } 
             }
         } else {
-            target := d.windowList.SelectedWindowName()
             client.HandleCommand(fmt.Sprintf("PRIVMSG %s", target), msg)
             chatChan <- msg
         }

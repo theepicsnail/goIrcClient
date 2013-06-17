@@ -15,12 +15,23 @@ func main() {
 
     messageHandler := func(ircMessages chan *IrcMessage) {
         for msg := range(ircMessages) {
-            chatChan <- fmt.Sprintf("Msg: %q", msg)
             switch msg.command {
                 case "JOIN":
-                    chatChan = wm.GetWindowByName(msg.trailing).GetLineChan()
-            }
 //               Msg: &{"testBot" "JOIN" [] "#test" ":testBot!testBot@airc-BD88CA3C JOIN :#test"}
+                    chatChan = wm.GetWindowByName(msg.trailing).GetLineChan()
+                case "PRIVMSG":
+                    target := msg.source
+                    if msg.params[0] != "testBot" {
+                        target = msg.params[0]
+                    }
+                    
+                    chatChan = wm.GetWindowByName(target).GetLineChan()
+                    chatChan <-fmt.Sprintf("%s | %s", msg.source, msg.trailing)
+//               Msg: &{"snail" "PRIVMSG" ["#test"] "test" ":snail!snail@airc-BD88CA3C PRIVMSG #test :test"}
+//               Msg: &{"snail" "PRIVMSG" ["testBot"] "Privmsg" ":snail!snail@airc-BD88CA3C PRIVMSG testBot :Privmsg"}
+                default:
+                chatChan <- fmt.Sprintf("TODO:%q", msg)
+            }
         }
     }
 

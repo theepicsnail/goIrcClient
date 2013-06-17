@@ -29,6 +29,12 @@ func main() {
                     chatChan <-fmt.Sprintf("%s | %s", msg.source, msg.trailing)
 //               Msg: &{"snail" "PRIVMSG" ["#test"] "test" ":snail!snail@airc-BD88CA3C PRIVMSG #test :test"}
 //               Msg: &{"snail" "PRIVMSG" ["testBot"] "Privmsg" ":snail!snail@airc-BD88CA3C PRIVMSG testBot :Privmsg"}
+                case "375", "372", "376": //MOTD Start, message, end
+                    //wm.GetWindowByName("Client").GetLineChan() <- msg.trailing
+                case "PING":
+                    continue
+                case "NOTICE":
+                    wm.GetWindowByName("Notices").GetLineChan() <- fmt.Sprintf("%s | %s", msg.source, msg.trailing) 
                 default:
                 chatChan <- fmt.Sprintf("TODO:%q", msg)
             }
